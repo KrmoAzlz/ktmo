@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SY · MELODY — بوت الموسيقى السوري</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0:#080a08;--bg-1:#0d0f0c;--bg-2:#111410;--bg-3:#181c14;--bg-4:#1e2419;
+  --gold:#c9a84c;--gold-light:#e8c96a;--gold-dim:#8a6e30;
+  --gold-glow:rgba(201,168,76,0.25);--gold-glow2:rgba(201,168,76,0.06);
+  --ember:#c0541a;
+  --text-0:#f5eed8;--text-1:#c8b98a;--text-2:#7a6e55;--text-3:#4a4535;
+  --border:rgba(201,168,76,0.1);--border-h:rgba(201,168,76,0.3);
+  --radius:10px;--radius-lg:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg-0);color:var(--text-1);overflow-x:hidden;min-height:100vh;}
+
+/* BG */
+.bg-noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.5;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");}
+.bg-r1{position:fixed;width:800px;height:800px;background:radial-gradient(circle,rgba(201,168,76,0.07) 0%,transparent 70%);top:-300px;right:-300px;pointer-events:none;z-index:0;animation:drift1 16s ease-in-out infinite;}
+.bg-r2{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(192,84,26,0.07) 0%,transparent 70%);bottom:-200px;left:-200px;pointer-events:none;z-index:0;animation:drift2 20s ease-in-out infinite;}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,40px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-40px)}}
+.embers{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ember{position:absolute;border-radius:50%;background:var(--gold-light);opacity:0;animation:emberUp linear infinite;}
+@keyframes emberUp{0%{transform:translateY(100vh) translateX(0);opacity:0;}10%{opacity:0.8;}90%{opacity:0.3;}100%{transform:translateY(-5vh) translateX(var(--dx));opacity:0;}}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(8,10,8,0.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 56px;height:66px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:14px;cursor:pointer;}
+.nav-diamond{width:38px;height:38px;border:1.5px solid var(--gold-dim);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px var(--gold-glow);transition:all 0.3s;}
+.nav-diamond:hover{border-color:var(--gold);box-shadow:0 0 24px var(--gold-glow);}
+.nav-diamond span{transform:rotate(-45deg);font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold);}
+.nav-brand{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--text-0);letter-spacing:1px;}
+.nav-brand em{color:var(--gold);font-style:normal;}
+.nav-links{display:flex;gap:4px;}
+.nav-link{padding:8px 18px;border-radius:6px;color:var(--text-2);font-size:14px;font-weight:600;cursor:pointer;background:transparent;border:none;font-family:'Tajawal',sans-serif;transition:all 0.2s;}
+.nav-link:hover,.nav-link.active{color:var(--gold);background:var(--gold-glow2);}
+.nav-cta{padding:9px 22px;border:1px solid var(--gold-dim);border-radius:6px;color:var(--gold);font-size:14px;font-weight:700;text-decoration:none;transition:all 0.3s;background:rgba(201,168,76,0.05);font-family:'Tajawal',sans-serif;box-shadow:0 0 14px var(--gold-glow);}
+.nav-cta:hover{background:rgba(201,168,76,0.12);border-color:var(--gold);transform:translateY(-1px);box-shadow:0 0 24px var(--gold-glow);}
+
+/* PAGES */
+.page{display:none;position:relative;z-index:1;}
+.page.active{display:block;}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 24px 80px;text-align:center;position:relative;}
+.h-ring{position:absolute;border:1px solid rgba(201,168,76,0.05);transform:rotate(45deg);pointer-events:none;}
+.h-ring-1{width:480px;height:480px;animation:spin 30s linear infinite;}
+.h-ring-2{width:340px;height:340px;animation:spin 20s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(405deg);}}
+
+.hero-badge{display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(201,168,76,0.18);border-radius:4px;padding:7px 18px;margin-bottom:36px;font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dim);letter-spacing:3px;background:rgba(201,168,76,0.04);animation:fadeD 0.8s ease both;}
+.ldot{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 6px var(--gold);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
+
+.hero-title{font-family:'Cinzel',serif;font-size:clamp(50px,9vw,108px);font-weight:900;line-height:0.92;color:var(--text-0);letter-spacing:-2px;animation:fadeD 0.8s ease 0.1s both;position:relative;z-index:1;}
+.gold-grad{background:linear-gradient(135deg,var(--gold-dim) 0%,var(--gold-light) 45%,var(--gold-dim) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200%;animation:shimmer 4s ease infinite;}
+@keyframes shimmer{0%,100%{background-position:0%}50%{background-position:100%}}
+
+.hero-sub-label{font-size:clamp(13px,1.8vw,16px);letter-spacing:5px;color:var(--text-2);font-family:'Cinzel',serif;font-weight:400;}
+.hero-line{width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);margin:28px auto;animation:fadeD 0.8s ease 0.2s both;}
+.hero-desc{font-size:clamp(14px,2vw,17px);color:var(--text-2);max-width:500px;margin:0 auto;line-height:1.8;animation:fadeD 0.8s ease 0.25s both;position:relative;z-index:1;}
+
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:36px;animation:fadeD 0.8s ease 0.3s both;position:relative;z-index:1;}
+.btn-g{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;border:1px solid var(--gold-dim);border-radius:6px;color:var(--gold);font-size:15px;font-weight:700;text-decoration:none;cursor:pointer;background:rgba(201,168,76,0.07);font-family:'Tajawal',sans-serif;transition:all 0.3s;box-shadow:0 0 20px var(--gold-glow);}
+.btn-g:hover{background:rgba(201,168,76,0.15);border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 28px var(--gold-glow);}
+.btn-o{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;border:1px solid rgba(201,168,76,0.1);border-radius:6px;color:var(--text-2);font-size:15px;font-weight:700;cursor:pointer;background:transparent;font-family:'Tajawal',sans-serif;transition:all 0.3s;}
+.btn-o:hover{border-color:rgba(201,168,76,0.22);color:var(--text-1);transform:translateY(-2px);}
+
+.hero-stats{display:flex;gap:56px;margin-top:80px;flex-wrap:wrap;justify-content:center;animation:fadeU 0.9s ease 0.5s both;position:relative;z-index:1;}
+.stat-div{width:1px;background:var(--border);}
+.stat{text-align:center;}
+.stat-n{font-family:'Cinzel',serif;font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--gold-dim),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px;}
+.stat-l{font-size:11px;color:var(--text-3);margin-top:6px;letter-spacing:1.5px;text-transform:uppercase;}
+
+/* SECTION */
+.sec{padding:100px 60px;max-width:1200px;margin:0 auto;}
+.gtag{display:inline-block;font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dim);border:1px solid rgba(201,168,76,0.18);padding:4px 14px;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;}
+.stitle{font-family:'Cinzel',serif;font-size:clamp(24px,3.5vw,40px);font-weight:700;color:var(--text-0);letter-spacing:-0.5px;line-height:1.15;}
+.g{background:linear-gradient(135deg,var(--gold-dim),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gline{width:56px;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--gold-light));margin:18px 0;}
+.ssub{font-size:14px;color:var(--text-2);line-height:1.8;max-width:480px;}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;margin-top:52px;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.feat-card{background:var(--bg-1);padding:30px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background 0.3s;position:relative;overflow:hidden;}
+.feat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-glow2),transparent 60%);opacity:0;transition:opacity 0.3s;}
+.feat-card:hover{background:var(--bg-2);}
+.feat-card:hover::after{opacity:1;}
+.feat-n{font-family:'Cinzel',serif;font-size:10px;color:var(--text-3);letter-spacing:2px;margin-bottom:12px;}
+.feat-i{font-size:26px;margin-bottom:14px;display:block;position:relative;z-index:1;}
+.feat-t{font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:8px;position:relative;z-index:1;}
+.feat-d{font-size:13px;color:var(--text-2);line-height:1.7;position:relative;z-index:1;}
+
+/* CTA BAND */
+.cta-band{margin:0 60px 80px;border:1px solid var(--border);border-radius:var(--radius-lg);padding:60px;text-align:center;background:linear-gradient(135deg,var(--bg-1),var(--bg-2));position:relative;overflow:hidden;}
+.cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.06) 0%,transparent 60%);}
+.cta-deco{position:absolute;width:180px;height:180px;border:1px solid rgba(201,168,76,0.05);transform:rotate(45deg);}
+
+/* COMMANDS */
+#page-commands{padding:100px 60px 80px;max-width:1100px;margin:0 auto;}
+.srch{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:6px;padding:11px 18px;margin-top:22px;max-width:440px;background:var(--bg-1);transition:border-color 0.2s;}
+.srch:focus-within{border-color:var(--gold-dim);}
+.srch input{background:none;border:none;outline:none;color:var(--text-0);font-family:'Tajawal',sans-serif;font-size:14px;flex:1;direction:rtl;}
+.srch input::placeholder{color:var(--text-3);}
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0;}
+.cat-btn{padding:6px 16px;border-radius:4px;border:1px solid var(--border);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;background:transparent;font-family:'Tajawal',sans-serif;transition:all 0.2s;}
+.cat-btn:hover,.cat-btn.active{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-glow2);}
+.cmd-list{display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.cmd-row{background:var(--bg-1);padding:15px 22px;display:flex;align-items:center;gap:18px;transition:background 0.2s;}
+.cmd-row:hover{background:var(--bg-2);}
+.cmd-n{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);font-weight:700;min-width:145px;padding:4px 10px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.1);border-radius:4px;white-space:nowrap;}
+.cmd-d{font-size:13px;color:var(--text-2);flex:1;}
+.cmd-b{font-size:10px;font-weight:700;padding:3px 10px;border-radius:3px;white-space:nowrap;font-family:'Cinzel',serif;letter-spacing:0.5px;}
+.cmd-b.music{background:rgba(201,168,76,0.07);color:var(--gold-dim);}
+.cmd-b.queue{background:rgba(192,84,26,0.09);color:#b04918;}
+.cmd-b.settings{background:rgba(200,185,138,0.07);color:var(--text-1);}
+.cmd-b.utility{background:rgba(74,69,53,0.25);color:var(--text-2);}
+
+/* ABOUT */
+#page-about{padding:100px 60px 80px;max-width:900px;margin:0 auto;}
+.ab-hero{display:flex;align-items:center;gap:44px;border:1px solid var(--border);border-radius:var(--radius-lg);padding:44px;margin-bottom:28px;background:var(--bg-1);position:relative;overflow:hidden;}
+.ab-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 50%,rgba(201,168,76,0.05) 0%,transparent 60%);}
+.ab-logo{width:82px;height:82px;border:1.5px solid var(--gold-dim);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 36px var(--gold-glow);}
+.ab-logo span{transform:rotate(-45deg);font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold);}
+.ab-title{font-family:'Cinzel',serif;font-size:28px;font-weight:700;color:var(--text-0);letter-spacing:1px;position:relative;z-index:1;}
+.ab-ver{font-size:11px;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:2px;margin-top:5px;}
+.ab-desc{font-size:13px;color:var(--text-2);line-height:1.9;margin-top:10px;position:relative;z-index:1;}
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ab-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+.ab-ct{font-family:'Cinzel',serif;font-size:10px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(201,168,76,0.05);}
+.irow:last-child{border-bottom:none;}
+.ik{font-size:13px;color:var(--text-2);}
+.iv{font-size:13px;color:var(--text-1);font-weight:700;}
+.live-b{display:inline-flex;align-items:center;gap:6px;color:var(--gold);}
+.live-b::before{content:'●';font-size:8px;animation:pulse 2s infinite;}
+
+/* DASHBOARD */
+#page-dashboard{padding:100px 60px 80px;max-width:1100px;margin:0 auto;}
+.d-notice{border:1px solid rgba(201,168,76,0.14);border-radius:var(--radius-lg);padding:28px 36px;margin-bottom:36px;background:rgba(201,168,76,0.03);display:flex;align-items:center;gap:24px;}
+.d-nt{font-family:'Cinzel',serif;font-size:17px;font-weight:700;color:var(--text-0);margin-bottom:5px;}
+.d-nb{font-size:13px;color:var(--text-2);line-height:1.7;}
+.d-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.d-stat{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;}
+.d-stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);opacity:0.35;}
+.d-sl{font-family:'Cinzel',serif;font-size:10px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.d-sv{font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:var(--text-0);letter-spacing:-1px;}
+.d-sv.g{background:linear-gradient(135deg,var(--gold-dim),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.d-ss{font-size:11px;color:var(--text-3);margin-top:3px;}
+.f-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px;margin-top:18px;}
+.f-title{font-family:'Cinzel',serif;font-size:13px;color:var(--text-1);letter-spacing:1px;margin-bottom:18px;}
+.f-wrap{display:flex;flex-wrap:wrap;gap:7px;}
+.f-tag{padding:5px 13px;border-radius:4px;border:1px solid rgba(201,168,76,0.09);font-size:12px;color:var(--text-2);transition:all 0.2s;cursor:default;}
+.f-tag:hover{border-color:var(--gold-dim);color:var(--gold-light);}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:26px 60px;display:flex;align-items:center;justify-content:space-between;color:var(--text-3);font-size:12px;position:relative;z-index:1;flex-wrap:wrap;gap:14px;letter-spacing:0.5px;}
+footer a{color:var(--text-3);text-decoration:none;transition:color 0.2s;}
+footer a:hover{color:var(--gold-dim);}
+.f-brand{font-family:'Cinzel',serif;font-size:12px;color:var(--gold-dim);letter-spacing:2px;}
+
+/* ANIM */
+@keyframes fadeD{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeU{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.55s ease,transform 0.55s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg-0);}::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:var(--gold-dim);}
+
+@media(max-width:768px){
+  nav{padding:0 20px;}.nav-links{display:none;}
+  .sec,#page-commands,#page-about,#page-dashboard{padding:100px 20px 60px;}
+  .cta-band{margin:0 20px 60px;padding:36px 22px;}
+  .ab-hero{flex-direction:column;gap:22px;padding:28px;}.ab-grid,.d-stats{grid-template-columns:1fr;}
+  .hero-stats{gap:24px;}.stat-div{display:none;}
+  footer{padding:22px 20px;flex-direction:column;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-noise"></div>
+<div class="bg-r1"></div>
+<div class="bg-r2"></div>
+<div class="embers" id="embers"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">
+    <div class="nav-diamond"><span>SY</span></div>
+    <span class="nav-brand">SY · <em>MELODY</em></span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showPage('home')">الرئيسية</button>
+    <button class="nav-link" onclick="showPage('commands')">الأوامر</button>
+    <button class="nav-link" onclick="showPage('dashboard')">الداشبورد</button>
+    <button class="nav-link" onclick="showPage('about')">عن البوت</button>
+  </div>
+  <a class="nav-cta" href="https://discord.com/oauth2/authorize" target="_blank">+ أضف البوت</a>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="h-ring h-ring-1"></div>
+    <div class="h-ring h-ring-2"></div>
+    <div class="hero-badge"><div class="ldot"></div>SYRIA SONGS · MUSIC BOT</div>
+    <h1 class="hero-title">
+      <span class="gold-grad">SY · MELODY</span><br>
+      <span class="hero-sub-label">بوت الموسيقى السوري</span>
+    </h1>
+    <div class="hero-line"></div>
+    <p class="hero-desc">شغّل موسيقتك المفضلة داخل Discord بجودة عالية، فلاتر صوتية احترافية، وتجربة تحكم سلسة</p>
+    <div class="hero-btns">
+      <a class="btn-g" href="https://discord.com/oauth2/authorize" target="_blank">🎵 أضف البوت</a>
+      <button class="btn-o" onclick="showPage('commands')">📋 الأوامر</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">23+</div><div class="stat-l">فلتر صوتي</div></div>
+      <div class="stat-div"></div>
+      <div class="stat"><div class="stat-n">50</div><div class="stat-l">حد الكيو</div></div>
+      <div class="stat-div"></div>
+      <div class="stat"><div class="stat-n">∞</div><div class="stat-l">سيرفر</div></div>
+      <div class="stat-div"></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">يعمل دايماً</div></div>
+    </div>
+  </div>
+
+  <div class="sec reveal">
+    <div class="gtag">المميزات</div>
+    <h2 class="stitle">تجربة موسيقى <span class="g">لا مثيل لها</span></h2>
+    <div class="gline"></div>
+    <p class="ssub">كل اللي تحتاجه لتشغيل الموسيقى داخل Discord بشكل احترافي</p>
+    <div class="feat-grid">
+      <div class="feat-card reveal"><div class="feat-n">01</div><span class="feat-i">🎵</span><div class="feat-t">جودة صوت عالية</div><div class="feat-d">يشغل الموسيقى بأفضل جودة متاحة من YouTube تلقائياً</div></div>
+      <div class="feat-card reveal"><div class="feat-n">02</div><span class="feat-i">🎛️</span><div class="feat-t">23 فلتر صوتي</div><div class="feat-d">Bass Boost، Nightcore، 8D، Reverb، Karaoke وكتير غيرهم</div></div>
+      <div class="feat-card reveal"><div class="feat-n">03</div><span class="feat-i">📋</span><div class="feat-t">كيو ذكي</div><div class="feat-d">50 أغنية بالكيو، خلط عشوائي، وثلاث أوضاع تكرار</div></div>
+      <div class="feat-card reveal"><div class="feat-n">04</div><span class="feat-i">⭐</span><div class="feat-t">قائمة مفضلة</div><div class="feat-d">احفظ أغانيك وشغّلها كلها بأمر واحد في أي وقت</div></div>
+      <div class="feat-card reveal"><div class="feat-n">05</div><span class="feat-i">🔍</span><div class="feat-t">بحث متقدم</div><div class="feat-d">ابحث واختر من 5 نتائج مباشرة من داخل Discord</div></div>
+      <div class="feat-card reveal"><div class="feat-n">06</div><span class="feat-i">🏰</span><div class="feat-t">يضل بالقناة</div><div class="feat-d">ما يطلع تلقائياً — يضل بالقناة لين تشيله أنت</div></div>
+    </div>
+  </div>
+
+  <div class="cta-band reveal">
+    <div class="cta-deco" style="top:-70px;left:-70px;"></div>
+    <div class="cta-deco" style="bottom:-70px;right:-70px;"></div>
+    <div class="gtag" style="margin-bottom:16px;">انضم الحين</div>
+    <h2 style="font-family:'Cinzel',serif;font-size:clamp(22px,3.5vw,36px);color:var(--text-0);margin-bottom:10px;position:relative;z-index:1;">
+      جاهز تضيف <span class="gold-grad">SY · MELODY</span>؟
+    </h2>
+    <p style="color:var(--text-2);font-size:14px;margin-bottom:28px;position:relative;z-index:1;">أضفه لسيرفرك وابدأ تشغيل الموسيقى الحين</p>
+    <a class="btn-g" href="https://discord.com/oauth2/authorize" target="_blank" style="position:relative;z-index:1;font-size:15px;padding:14px 34px;">🎵 أضف البوت لسيرفرك</a>
+  </div>
+</div>
+
+<!-- COMMANDS -->
+<div id="page-commands" class="page">
+  <div class="gtag">الأوامر</div>
+  <h1 class="stitle" style="margin-bottom:8px;">كل الأوامر المتاحة</h1>
+  <div class="gline"></div>
+  <p class="ssub">كل الأوامر تبدأ بـ <code style="background:var(--bg-2);padding:2px 8px;border-radius:4px;font-family:'Cinzel',serif;color:var(--gold);font-size:11px;">/p1</code></p>
+  <div class="srch"><span style="color:var(--text-3);">⟡</span><input type="text" placeholder="ابحث عن أمر..." oninput="filterC(this.value)"></div>
+  <div class="cats">
+    <button class="cat-btn active" onclick="catF('all',this)">الكل</button>
+    <button class="cat-btn" onclick="catF('music',this)">🎵 موسيقى</button>
+    <button class="cat-btn" onclick="catF('queue',this)">📋 الكيو</button>
+    <button class="cat-btn" onclick="catF('settings',this)">⚙️ إعدادات</button>
+    <button class="cat-btn" onclick="catF('utility',this)">🔧 أدوات</button>
+  </div>
+  <div class="cmd-list" id="cmd-list"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page">
+  <div class="gtag">الداشبورد</div>
+  <h1 class="stitle" style="margin-bottom:8px;">لوحة التحكم</h1>
+  <div class="gline"></div>
+  <p class="ssub" style="margin-bottom:34px;">نظرة عامة على البوت والمميزات المتاحة</p>
+  <div class="d-notice">
+    <div style="font-size:34px;flex-shrink:0;">⚔️</div>
+    <div><div class="d-nt">الداشبورد الكامل قريباً</div><div class="d-nb">لوحة التحكم الكاملة قيد التطوير. حالياً تقدر تتحكم بكل شي من داخل Discord عن طريق الأزرار والأوامر مباشرة.</div></div>
+  </div>
+  <div class="d-stats">
+    <div class="d-stat"><div class="d-sl">حالة البوت</div><div class="d-sv g" style="font-size:18px;"><span class="live-b">شغّال</span></div><div class="d-ss">يعمل 24/7 بدون انقطاع</div></div>
+    <div class="d-stat"><div class="d-sl">الفلاتر</div><div class="d-sv g">23</div><div class="d-ss">فلتر صوتي احترافي</div></div>
+    <div class="d-stat"><div class="d-sl">حد الكيو</div><div class="d-sv">50</div><div class="d-ss">أغنية بكيو واحد</div></div>
+  </div>
+  <div class="f-card">
+    <div class="f-title">⚜ الفلاتر الصوتية المتاحة</div>
+    <div class="f-wrap">
+      <div class="f-tag">🎵 بدون فلتر</div><div class="f-tag">🔈 Bass خفيف</div><div class="f-tag">🔊 Bass Boost</div><div class="f-tag">💥 Bass قوي</div><div class="f-tag">🔉 Subwoofer</div><div class="f-tag">📢 Loudness</div><div class="f-tag">⚡ Boost All</div><div class="f-tag">🏛️ Reverb</div><div class="f-tag">🎶 Chorus</div><div class="f-tag">🌊 Flanger</div><div class="f-tag">🕊️ Soft</div><div class="f-tag">💎 Crystal Clear</div><div class="f-tag">🎙️ Deep Voice</div><div class="f-tag">🐿️ Chipmunk</div><div class="f-tag">🌙 Nightcore</div><div class="f-tag">🌫️ Vaporwave</div><div class="f-tag">🌀 8D Audio</div><div class="f-tag">🫧 Echo</div><div class="f-tag">🎤 Karaoke</div><div class="f-tag">📻 Radio</div><div class="f-tag">🎚️ Treble Boost</div><div class="f-tag">🐢 Slow</div><div class="f-tag">🚀 Fast</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="page-about" class="page">
+  <div class="gtag">عن البوت</div>
+  <h1 class="stitle" style="margin-bottom:8px;">SY · MELODY</h1>
+  <div class="gline" style="margin-bottom:28px;"></div>
+  <div class="ab-hero">
+    <div class="ab-logo"><span>SY</span></div>
+    <div>
+      <div class="ab-title">SY · MELODY</div>
+      <div class="ab-ver">SYRIA SONGS MUSIC BOT · v2.0</div>
+      <p class="ab-desc">بوت موسيقى Discord خاص بسيرفر Syria Songs، مبني بـ Python وdiscord.py. يدعم التشغيل من YouTube بجودة عالية مع 23 فلتر صوتي، كيو يوصل لـ 50 أغنية، ومفضلة شخصية لكل مستخدم. يضل بالقناة دايماً ولا يطلع تلقائياً.</p>
+    </div>
+  </div>
+  <div class="ab-grid">
+    <div class="ab-card">
+      <div class="ab-ct">معلومات تقنية</div>
+      <div class="irow"><span class="ik">اللغة</span><span class="iv">Python 3.11+</span></div>
+      <div class="irow"><span class="ik">المكتبة</span><span class="iv">discord.py 2.x</span></div>
+      <div class="irow"><span class="ik">مصدر الموسيقى</span><span class="iv">YouTube (yt-dlp)</span></div>
+      <div class="irow"><span class="ik">معالجة الصوت</span><span class="iv">FFmpeg</span></div>
+      <div class="irow"><span class="ik">الأوامر</span><span class="iv">Slash Commands</span></div>
+    </div>
+    <div class="ab-card">
+      <div class="ab-ct">الحالة</div>
+      <div class="irow"><span class="ik">الحالة</span><span class="iv"><span class="live-b">شغّال</span></span></div>
+      <div class="irow"><span class="ik">حد الكيو</span><span class="iv">50 أغنية</span></div>
+      <div class="irow"><span class="ik">الفلاتر</span><span class="iv">23 فلتر</span></div>
+      <div class="irow"><span class="ik">مالتي سيرفر</span><span class="iv">✅ نعم</span></div>
+      <div class="irow"><span class="ik">طلع تلقائي</span><span class="iv">❌ مطفي</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="f-brand">SY · MELODY</span>
+  <div style="display:flex;gap:22px;">
+    <a href="#" onclick="showPage('commands')">الأوامر</a>
+    <a href="#" onclick="showPage('about')">عن البوت</a>
+    <a href="https://discord.com/oauth2/authorize" target="_blank">أضف البوت</a>
+  </div>
+  <span>© 2026 Syria Songs · جميع الحقوق محفوظة</span>
+</footer>
+
+<script>
+// EMBERS
+(function(){
+  const c=document.getElementById('embers');
+  for(let i=0;i<20;i++){
+    const e=document.createElement('div');e.className='ember';
+    const sz=1+Math.random()*2;
+    e.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;--dx:${(Math.random()-0.5)*180}px;animation-duration:${7+Math.random()*11}s;animation-delay:${Math.random()*14}s;`;
+    c.appendChild(e);
+  }
+})();
+
+// COMMANDS
+const CMDS=[
+  {n:'/p1play',d:'شغّل أغنية أو أضفها للكيو عن طريق الاسم أو رابط YouTube',c:'music'},
+  {n:'/p1search',d:'ابحث عن أغنية واختر من 5 نتائج مباشرة',c:'music'},
+  {n:'/p1skip',d:'تخطي الأغنية الحالية إلى الأغنية التالية',c:'music'},
+  {n:'/p1pause',d:'إيقاف مؤقت للأغنية الحالية',c:'music'},
+  {n:'/p1resume',d:'استئناف التشغيل بعد الإيقاف المؤقت',c:'music'},
+  {n:'/p1stop',d:'إيقاف التشغيل ومسح الكيو كاملاً',c:'music'},
+  {n:'/p1now',d:'إعادة إرسال رسالة التشغيل مع أزرار التحكم',c:'music'},
+  {n:'/p1queue',d:'عرض قائمة التشغيل الحالية',c:'queue'},
+  {n:'/p1remove',d:'حذف أغنية من الكيو برقمها',c:'queue'},
+  {n:'/p1clear',d:'مسح الكيو كاملاً بدون إيقاف الأغنية الحالية',c:'queue'},
+  {n:'/p1shuffle',d:'خلط ترتيب الكيو عشوائياً',c:'queue'},
+  {n:'/p1loop',d:'تغيير وضع التكرار: إيقاف / أغنية / الكيو كله',c:'settings'},
+  {n:'/p1volume',d:'ضبط مستوى الصوت من 0 إلى 150',c:'settings'},
+  {n:'/p1filter',d:'فتح قائمة الفلاتر الصوتية الاحترافية',c:'settings'},
+  {n:'/p1fav',d:'إدارة المفضلة: إضافة / عرض / تشغيل / حذف',c:'settings'},
+  {n:'/p1join',d:'أمر البوت ينضم لقناتك الصوتية',c:'utility'},
+  {n:'/p1leave',d:'إخراج البوت من القناة الصوتية',c:'utility'},
+  {n:'/p1ping',d:'فحص سرعة استجابة البوت',c:'utility'},
+  {n:'/p1help',d:'عرض قائمة كل الأوامر المتاحة',c:'utility'},
+];
+const CAR={music:'🎵 موسيقى',queue:'📋 كيو',settings:'⚙️ إعدادات',utility:'🔧 أدوات'};
+let aC='all',aS='';
+function renderCmds(){
+  const l=document.getElementById('cmd-list');
+  const f=CMDS.filter(c=>(aC==='all'||c.c===aC)&&(!aS||c.n.includes(aS)||c.d.includes(aS)));
+  l.innerHTML=f.map(c=>`<div class="cmd-row"><span class="cmd-n">${c.n}</span><span class="cmd-d">${c.d}</span><span class="cmd-b ${c.c}">${CAR[c.c]}</span></div>`).join('');
+}
+function catF(cat,el){aC=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderCmds();}
+function filterC(v){aS=v;renderCmds();}
+renderCmds();
+
+// NAV
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const m={home:'الرئيسية',commands:'الأوامر',dashboard:'الداشبورد',about:'عن البوت'};
+  document.querySelectorAll('.nav-link').forEach(l=>{if(l.textContent===m[id])l.classList.add('active');});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// REVEAL
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
